@@ -1,0 +1,15 @@
+name: Man10_SerialCode
+version: '${project.version}'
+main: yusama125718.man10_serialcode.Man10_SerialCode
+api-version: 1.17
+
+commands:
+  mserial:
+    description: Man10SerialCode
+    usage: /mserial helpでコマンドを確認
+
+permissions:
+  mserial.op:
+    default: op
+  mserial.p:
+    default: true
