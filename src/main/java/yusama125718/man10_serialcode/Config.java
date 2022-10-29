@@ -12,22 +12,22 @@ import static yusama125718.man10_serialcode.Man10_SerialCode.mserial;
 import static yusama125718.man10_serialcode.Man10_SerialCode.configfile;
 
 public class Config {
-    private static final File folder = new File(mserial.getDataFolder().getAbsolutePath() + File.separator + "recipes");
+    private static final File folder = new File(mserial.getDataFolder().getAbsolutePath() + File.separator + "serial");
 
     public static void LoadFile(){
         if (mserial.getDataFolder().listFiles() != null){
             for (File file : Objects.requireNonNull(mserial.getDataFolder().listFiles())) {
-                if (file.getName().equals("recipes")) {
+                if (file.getName().equals("serial")) {
                     configfile = file;
                     return;
                 }
             }
         }
         if (folder.mkdir()) {
-            Bukkit.broadcast("§c§l[Man10SerialCode] §rレシピフォルダを作成しました", "magri.op");
+            Bukkit.broadcast("§c§l[Man10SerialCode] §rレシピフォルダを作成しました", "mserial.op");
             configfile = folder;
         } else {
-            Bukkit.broadcast("§c§l[Man10SerialCode] §rレシピフォルダの作成に失敗しました", "magri.op");
+            Bukkit.broadcast("§c§l[Man10SerialCode] §rレシピフォルダの作成に失敗しました", "mserial.op");
         }
     }
 
