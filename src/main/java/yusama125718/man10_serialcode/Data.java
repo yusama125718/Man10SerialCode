@@ -10,13 +10,15 @@ public class Data {
         public Boolean mode;
         public Integer count;
         public Byte span;
-        public SerialCode(String Name, String Code, ItemStack Reward, Boolean Mode, Integer Count, Byte Span){
+        public Integer sub;
+        public SerialCode(String Name, String Code, ItemStack Reward, Boolean Mode, Integer Count, Byte Span, Integer Sub){
             name = Name;
             code = Code;
             reward = Reward;
             mode = Mode;
             count = Count;
             span = Span;
+            sub = Sub;
         }
     }
 

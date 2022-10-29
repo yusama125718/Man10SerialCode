@@ -18,6 +18,7 @@ public final class Man10_SerialCode extends JavaPlugin {
     public static File configfile;
     public static HashMap<Player, Data.AddSerial> addlist = new HashMap<>();
     public static HashMap<Player, Data.SerialCode> players = new HashMap<>();
+    public static HashMap<Player, Data.SerialCode> addsublist = new HashMap<>();
 
     @Override
     public void onEnable() {

@@ -36,7 +36,7 @@ public class Config {
             Bukkit.broadcast("§c§l[Man10SerialCode] §r" + file.getName() + "の読み込みに失敗しました","mserial.op");
             return null;
         }
-        return new Data.SerialCode(config.getString("name"), config.getString("code"), config.getItemStack("reward"), config.getBoolean("mode"), config.getInt("count"), (byte) config.getInt("span"));
+        return new Data.SerialCode(config.getString("name"), config.getString("code"), config.getItemStack("reward"), config.getBoolean("mode"), config.getInt("count"), (byte) config.getInt("span"), config.getInt("sub"));
     }
 
     public static void CreateSerial(Data.SerialCode r){
@@ -48,6 +48,7 @@ public class Config {
         yml.set("count", r.count);
         yml.set("span", r.span);
         yml.set("reward", r.reward);
+        yml.set("sub", r.sub);
         try {
             yml.save(folder);
         } catch (IOException e) {

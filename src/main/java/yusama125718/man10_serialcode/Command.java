@@ -103,6 +103,20 @@ public class Command implements CommandExecutor, TabCompleter {
                     sender.sendMessage("§c§l[Man10SerialCode] §r削除しました");
                     return true;
                 }
+                else if (args[0].equals("sub") && sender.hasPermission("mserial.op")){
+                    if (addsublist != null || addsublist.containsKey((Player) sender)){
+                        boolean isNumeric = args[1].matches("-?\\d+");
+                        if (!isNumeric){
+                            sender.sendMessage("§c§l[Man10SerialCode] §r数字が無効です");
+                            return true;
+                        }
+                        addsublist.get((Player) sender).sub = parseInt(args[1]);
+                        serial.add(addsublist.get((Player) sender));
+                        addsublist.remove((Player) sender);
+                        return true;
+                    }
+                }
+                break;
 
             case 3:
                 if (args[0].equals("add") && sender.hasPermission("mserial.op")){
@@ -157,13 +171,11 @@ public class Command implements CommandExecutor, TabCompleter {
         if (!sender.hasPermission("mserial.p")) return null;
         if (args.length == 1){
             if (args[0].length() == 0){
-                if (sender.hasPermission("mserial.op")) return Arrays.asList("add", "debug" , "delete", "help", "list", "off", "on");
+                if (sender.hasPermission("mserial.op")) return Arrays.asList("add", "delete", "help", "list", "off", "on");
                 else return Collections.singletonList("help");
             } else if ("help".startsWith(args[0])) return Collections.singletonList("help");
             else if (sender.hasPermission("mserial.op")){
                 if ("add".startsWith(args[0])) return Collections.singletonList("add");
-                else if ("debug".startsWith(args[0]) && "delete".startsWith(args[0])) return Arrays.asList("debug", "delete");
-                else if ("debug".startsWith(args[0])) return Collections.singletonList("debug");
                 else if ("delete".startsWith(args[0])) return Collections.singletonList("delete");
                 else if ("list".startsWith(args[0])) return Collections.singletonList("list");
                 else if ("on".startsWith(args[0]) && "off".startsWith(args[0])) return Arrays.asList("on", "off");
@@ -172,7 +184,6 @@ public class Command implements CommandExecutor, TabCompleter {
             }
         } else if (args.length == 2 && sender.hasPermission("mserial,op")){
             if (args[0].equals("add")) return Collections.singletonList("[内部名]");
-            else if (args[0].equals("debug")) return Arrays.asList("on", "off");
             else if (args[0].equals("delete")) {
                 ArrayList<String> list = new ArrayList<>();
                 for (Data.SerialCode s : serial) list.add(s.name);

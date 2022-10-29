@@ -9,14 +9,18 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import red.man10.man10score.ScoreDatabase;
 
-import javax.swing.plaf.IconUIResource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.UUID;
 
 import static java.lang.Integer.parseInt;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.event.ClickEvent.suggestCommand;
 import static yusama125718.man10_serialcode.GUI.*;
 import static yusama125718.man10_serialcode.Man10_SerialCode.*;
 
@@ -29,7 +33,7 @@ public class Event implements Listener {
 
     @EventHandler
     public void InputGUIClick(InventoryClickEvent e){
-        if (!e.getView().title().equals(Component.text("[Man10SerialCode] 入力画面")) || e.getCurrentItem() == null) return;
+        if (!e.getView().title().equals(text("[Man10SerialCode] 入力画面")) || e.getCurrentItem() == null) return;
         e.setCancelled(true);
         switch (e.getRawSlot()){
             case 50: //0
@@ -174,7 +178,7 @@ public class Event implements Listener {
 
     @EventHandler
     public void RewardGUIClick(InventoryClickEvent e) {
-        if (!e.getView().title().equals(Component.text("[Man10SerialCode] 受け取り画面")) || e.getCurrentItem() == null) return;
+        if (!e.getView().title().equals(text("[Man10SerialCode] 受け取り画面")) || e.getCurrentItem() == null) return;
         e.setCancelled(true);
         if (e.getRawSlot() != 22) return;
         Thread th = new Thread(() -> {
@@ -182,10 +186,25 @@ public class Event implements Listener {
             MySQLManager mysql = new MySQLManager(mserial, "mserial");
             int Count = 0;
             ResultSet res0 = null;
-            if (!t.mode) res0 = mysql.query("select count(*) from mserial_data where uuid = '"+ e.getWhoClicked().getUniqueId() +"' and code = '"+ t.code +"' and serial = '"+ t.name +"'");
-            else res0 = mysql.query("select count(*) from mserial_data where code = '"+ t.code +"' and serial = '"+ t.name +"'");
+            if (t.mode) res0 = mysql.query("select count(*) from mserial_data where code = '"+ t.code +"' and serial = '"+ t.name +"'");
+            else if (t.sub == 0) res0 = mysql.query("select count(*) from mserial_data where uuid = '"+ e.getWhoClicked().getUniqueId() +"' and code = '"+ t.code +"' and serial = '"+ t.name +"'");
+            else {
+                List<UUID> account = ScoreDatabase.INSTANCE.getSubAccount(e.getWhoClicked().getUniqueId());
+                StringBuilder query = new StringBuilder("select count(*) from mserial_data where code = '"+ t.code +"' and serial = '"+ t.name +"' and uuid in ()");
+                boolean first = true;
+                for (UUID id : account){
+                    if (first){
+                        query.insert(query.length() - 2, id);
+                        first = false;
+                    } else query.insert(query.length() - 2, ", "+ id);
+                }
+                res0 = mysql.query(query.toString());
+            }
             if (res0 == null){
-                if (!debug){
+                if (debug && e.getWhoClicked().hasPermission("mserial.op")){
+                    e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rDBの接続に失敗しましたがそのまま続行します");
+                    Bukkit.broadcast(text("§c§l[Man10SerialCode] §rデバッグ：DBの取得に失敗しましたがそのまま続行します"),"mserial.op");
+                } else {
                     e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rDBの取得に失敗しました");
                     e.getWhoClicked().closeInventory();
                     try {
@@ -194,9 +213,6 @@ public class Event implements Listener {
                         throwables.printStackTrace();
                     }
                     return;
-                } else {
-                    e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rDBの取得に失敗しましたがそのまま続行します");
-                    Bukkit.broadcast(Component.text("§c§l[Man10SerialCode] §rデバッグ：DBの取得に失敗しましたがそのまま続行します"),"mserial.op");
                 }
             } else {
                 try {
@@ -213,7 +229,10 @@ public class Event implements Listener {
             ResultSet res1 = mysql.query("select time, serial, code, name, uuid from mserial_data");
             LocalDateTime time = null;
             if (res1 == null){
-                if (!debug){
+                if (debug && e.getWhoClicked().hasPermission("mserial.op")){
+                    e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rDBの接続に失敗しましたがそのまま続行します");
+                    Bukkit.broadcast(text("§c§l[Man10SerialCode] §rデバッグ：DBの取得に失敗しましたがそのまま続行します"),"mserial.op");
+                } else {
                     e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rDBの取得に失敗しました");
                     e.getWhoClicked().closeInventory();
                     try {
@@ -222,9 +241,6 @@ public class Event implements Listener {
                         throwables.printStackTrace();
                     }
                     return;
-                } else {
-                    e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rDBの取得に失敗しましたがそのまま続行します");
-                    Bukkit.broadcast(Component.text("§c§l[Man10SerialCode] §rデバッグ：DBの取得に失敗しましたがそのまま続行します"),"mserial.op");
                 }
             } else {
                 while (true){
@@ -272,18 +288,18 @@ public class Event implements Listener {
                 return;
             }
             if (!mysql.execute("insert into mserial_data (time, serial, code, name, uuid) values ('"+ LocalDateTime.now() +"', '"+ t.name +"', '"+ t.code +"', '"+ e.getWhoClicked().getName() +"', '"+ e.getWhoClicked().getUniqueId() +"');")){
-                if (!debug){
+                if (debug && e.getWhoClicked().hasPermission("mserial.op")){
+                    e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rDBの接続に失敗しましたがそのまま続行します");
+                    Bukkit.broadcast(text("§c§l[Man10SerialCode] §rデバッグ：DBの取得に失敗しましたがそのまま続行します"),"mserial.op");
+                } else {
                     e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rDBの接続に失敗しました");
                     e.getWhoClicked().closeInventory();
                     return;
-                } else {
-                    e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rDBの接続に失敗しましたがそのまま続行します");
-                    Bukkit.broadcast(Component.text("§c§l[Man10SerialCode] §rデバッグ：DBの取得に失敗しましたがそのまま続行します"),"mserial.op");
                 }
             }
             e.getWhoClicked().getInventory().addItem(t.reward);
             e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §r獲得しました");
-            if (debug) Bukkit.broadcast(Component.text("§c§l[Man10SerialCode] §rデバッグ："+e.getWhoClicked().getName()+"が"+ t.name +"を受け取りました。"),"mserial.op");
+            if (debug) Bukkit.broadcast(text("§c§l[Man10SerialCode] §rデバッグ："+e.getWhoClicked().getName()+"が"+ t.name +"を受け取りました。"),"mserial.op");
         });
         th.start();
         try {
@@ -294,19 +310,17 @@ public class Event implements Listener {
 
     @EventHandler
     public void RewardGUIClose(InventoryCloseEvent e) {
-        if (!e.getView().title().equals(Component.text("[Man10SerialCode] 受け取り画面")) || players == null) return;
+        if (!e.getView().title().equals(text("[Man10SerialCode] 受け取り画面")) || players == null) return;
         if (!players.containsKey((Player) e.getPlayer())) return;
         players.remove((Player) e.getPlayer());
     }
 
     @EventHandler
     public void AddGUIClick(InventoryClickEvent e) {
-        if (!e.getView().title().equals(Component.text("[Man10SerialCode] 追加画面")) || e.getCurrentItem() == null || !e.getCurrentItem().hasItemMeta() || !e.getCurrentItem().getItemMeta().hasCustomModelData())
-            return;
+        if (!e.getView().title().equals(text("[Man10SerialCode] 追加画面")) || e.getCurrentItem() == null || !e.getCurrentItem().hasItemMeta() || !e.getCurrentItem().getItemMeta().hasCustomModelData()) return;
         Material mate = e.getCurrentItem().getType();
         int cmd = e.getCurrentItem().getItemMeta().getCustomModelData();
-        if (!(mate.equals(Material.QUARTZ) && (cmd == 48 || cmd == 49 || cmd == 50 || cmd == 51 || cmd == 52 || cmd == 53 || cmd == 54 || cmd == 55 || cmd == 56 || cmd == 57 || cmd == 42 || cmd == 45)) && !(mate.equals(Material.WHITE_STAINED_GLASS_PANE) && cmd == 1) && !(mate.equals(Material.BLACK_STAINED_GLASS_PANE) && cmd == 1) && !(mate.equals(Material.CLOCK) && cmd == 0) && !(mate.equals(Material.COMPASS) && cmd == 0) && !(mate.equals(Material.TNT) && cmd == 0) && !(mate.equals(Material.REDSTONE_BLOCK) && cmd == 0) && !(mate.equals(Material.EMERALD_BLOCK) && cmd == 0))
-            return;
+        if (!(mate.equals(Material.QUARTZ) && (cmd == 48 || cmd == 49 || cmd == 50 || cmd == 51 || cmd == 52 || cmd == 53 || cmd == 54 || cmd == 55 || cmd == 56 || cmd == 57 || cmd == 42 || cmd == 45)) && !(mate.equals(Material.WHITE_STAINED_GLASS_PANE) && cmd == 1) && !(mate.equals(Material.BLACK_STAINED_GLASS_PANE) && cmd == 1) && !(mate.equals(Material.CLOCK) && cmd == 0) && !(mate.equals(Material.COMPASS) && cmd == 0) && !(mate.equals(Material.TNT) && cmd == 0) && !(mate.equals(Material.REDSTONE_BLOCK) && cmd == 0) && !(mate.equals(Material.EMERALD_BLOCK) && cmd == 0) && !(mate.equals(Material.TOTEM_OF_UNDYING) && cmd == 0)) return;
         e.setCancelled(true);
         switch (e.getRawSlot()) {
             case 50: //0
@@ -432,6 +446,12 @@ public class Event implements Listener {
                     e.getInventory().setItem(46, GetItem(Material.CLOCK, 1, "スパン：無し", 0));
                 break;
 
+            case 47:
+                if (e.getCurrentItem().equals(GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限：OFF", 0)))
+                    e.getInventory().setItem(47, GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限：ON", 0));
+                else if (e.getCurrentItem().equals(GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限：ON", 0)))
+                    e.getInventory().setItem(47, GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限：OFF", 0));
+
             case 48:
                 if (e.getCurrentItem().equals(GetItem(Material.COMPASS, 1, "モード：個人制限", 0)))
                     e.getInventory().setItem(48, GetItem(Material.COMPASS, 1, "モード：全体制限", 0));
@@ -493,10 +513,17 @@ public class Event implements Listener {
                 if (e.getInventory().getItem(46).equals(GetItem(Material.CLOCK, 1, "スパン：1日", 0))) span = 1;
                 if (e.getInventory().getItem(46).equals(GetItem(Material.CLOCK, 1, "スパン：1週", 0))) span = 2;
                 if (e.getInventory().getItem(46).equals(GetItem(Material.CLOCK, 1, "スパン：1月", 0))) span = 3;
-                Data.SerialCode s = new Data.SerialCode(t.name, pass.toString(), e.getInventory().getItem(29), mode, t.count, span);
-                Config.CreateSerial(s);
-                serial.add(s);
-                e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §r追加しました");
+                Data.SerialCode s = new Data.SerialCode(t.name, pass.toString(), e.getInventory().getItem(29), mode, t.count, span, 0);
+                if ((e.getCurrentItem().equals(GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限：OFF", 0)))){
+                    Config.CreateSerial(s);
+                    serial.add(s);
+                    e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §r追加しました");
+                } else {
+                    addsublist.remove((Player) e.getWhoClicked());
+                    addsublist.put((Player) e.getWhoClicked(), s);
+                    e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §r/mserial sub [数] で制限する数を設定してください");
+                    e.getWhoClicked().sendMessage(text("§c§l[ここをクリックで自動入力する]").clickEvent(suggestCommand("/mserial sub ")));
+                }
                 e.getInventory().close();
                 break;
         }
