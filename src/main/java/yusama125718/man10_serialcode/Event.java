@@ -15,6 +15,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -185,50 +186,10 @@ public class Event implements Listener {
             Data.SerialCode t = players.get((Player) e.getWhoClicked());
             MySQLManager mysql = new MySQLManager(mserial, "mserial");
             int Count = 0;
-            ResultSet res0 = null;
-            if (t.mode) res0 = mysql.query("select count(*) from mserial_data where code = '"+ t.code +"' and serial = '"+ t.name +"'");
-            else if (t.sub == 0) res0 = mysql.query("select count(*) from mserial_data where uuid = '"+ e.getWhoClicked().getUniqueId() +"' and code = '"+ t.code +"' and serial = '"+ t.name +"'");
-            else {
-                List<UUID> account = ScoreDatabase.INSTANCE.getSubAccount(e.getWhoClicked().getUniqueId());
-                StringBuilder query = new StringBuilder("select count(*) from mserial_data where code = '"+ t.code +"' and serial = '"+ t.name +"' and uuid in ()");
-                boolean first = true;
-                for (UUID id : account){
-                    if (first){
-                        query.insert(query.length() - 2, id);
-                        first = false;
-                    } else query.insert(query.length() - 2, ", "+ id);
-                }
-                res0 = mysql.query(query.toString());
-            }
-            if (res0 == null){
-                if (debug && e.getWhoClicked().hasPermission("mserial.op")){
-                    e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rDBの接続に失敗しましたがそのまま続行します");
-                    Bukkit.broadcast(text("§c§l[Man10SerialCode] §rデバッグ：DBの取得に失敗しましたがそのまま続行します"),"mserial.op");
-                } else {
-                    e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rDBの取得に失敗しました");
-                    e.getWhoClicked().closeInventory();
-                    try {
-                        mysql.close();
-                    } catch (NullPointerException throwables) {
-                        throwables.printStackTrace();
-                    }
-                    return;
-                }
-            } else {
-                try {
-                    if (res0.next()) Count = res0.getInt("count(*)");
-                } catch (SQLException throwables) {
-                    throwables.printStackTrace();
-                }
-                try {
-                    res0.close();
-                } catch (SQLException throwables) {
-                    throwables.printStackTrace();
-                }
-            }
-            ResultSet res1 = mysql.query("select time, serial, code, name, uuid from mserial_data");
+            ResultSet res = mysql.query("select time, serial, code, name, uuid from mserial_data where code = '"+ t.code +"' and serial = '"+ t.name +"'");
             LocalDateTime time = null;
-            if (res1 == null){
+            List<UUID> useaccount = new ArrayList<>();
+            if (res == null){
                 if (debug && e.getWhoClicked().hasPermission("mserial.op")){
                     e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rDBの接続に失敗しましたがそのまま続行します");
                     Bukkit.broadcast(text("§c§l[Man10SerialCode] §rデバッグ：DBの取得に失敗しましたがそのまま続行します"),"mserial.op");
@@ -243,18 +204,27 @@ public class Event implements Listener {
                     return;
                 }
             } else {
+                List<UUID> account = ScoreDatabase.INSTANCE.getSubAccount(e.getWhoClicked().getUniqueId());
                 while (true){
                     try {
-                        if (!res1.next()) break;
-                        if (!res1.getString("code").equals(t.code) || !res1.getString("serial").equals(t.name) || !res1.getString("uuid").equals(e.getWhoClicked().getUniqueId().toString())) continue;
-                        if (time != null && LocalDateTime.parse(res1.getString("time")).isAfter(time)) time = LocalDateTime.parse(res1.getString("time"));
-                        else if (time == null) time = LocalDateTime.parse(res1.getString("time"));
+                        if (!res.next()) break;
+                        if (t.sub == 0 && res.getString("uuid").equals(e.getWhoClicked().getUniqueId().toString())) {
+                            if (time != null && LocalDateTime.parse(res.getString("time")).isAfter(time)) time = LocalDateTime.parse(res.getString("time"));
+                            else if (time == null) time = LocalDateTime.parse(res.getString("time"));
+                        }
+                        else if (account.contains(UUID.fromString(res.getString("uuid")))){
+                            if (time != null && LocalDateTime.parse(res.getString("time")).isAfter(time)) time = LocalDateTime.parse(res.getString("time"));
+                            else if (time == null) time = LocalDateTime.parse(res.getString("time"));
+                        }
+                        if (t.sub != 0 && account.contains(UUID.fromString(res.getString("uuid"))) && !useaccount.contains(UUID.fromString(res.getString("uuid")))) useaccount.add(UUID.fromString(res.getString("uuid")));
+                        if (t.mode) Count++;
+                        else if (res.getString("uuid").equals(e.getWhoClicked().getUniqueId().toString())) Count++;
                     } catch (SQLException throwables) {
                         throwables.printStackTrace();
                     }
                 }
                 try {
-                    res1.close();
+                    res.close();
                 } catch (SQLException throwables) {
                     throwables.printStackTrace();
                 }
@@ -267,8 +237,8 @@ public class Event implements Listener {
             long between = 0;
             if (time == null) between = 30;
             else between = ChronoUnit.DAYS.between(time,LocalDateTime.now());
-            if (e.getWhoClicked().getInventory().firstEmpty() == -1){
-                e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rインベントリが満杯のため受け取れません");
+            if (t.sub != 0 && !useaccount.contains(e.getWhoClicked().getUniqueId()) && useaccount.size() >= t.sub){
+                e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rこのコードで受け取れるアカウント数を超えています");
                 return;
             }
             if (Count >= t.count && t.count != 0) {
@@ -285,6 +255,10 @@ public class Event implements Listener {
             }
             else if (t.span == 3 && between <= 30){      //スパン１月
                 e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rクールタイムです");
+                return;
+            }
+            if (e.getWhoClicked().getInventory().firstEmpty() == -1){
+                e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rインベントリが満杯のため受け取れません");
                 return;
             }
             if (!mysql.execute("insert into mserial_data (time, serial, code, name, uuid) values ('"+ LocalDateTime.now() +"', '"+ t.name +"', '"+ t.code +"', '"+ e.getWhoClicked().getName() +"', '"+ e.getWhoClicked().getUniqueId() +"');")){

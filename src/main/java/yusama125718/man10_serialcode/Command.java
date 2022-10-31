@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -100,7 +101,17 @@ public class Command implements CommandExecutor, TabCompleter {
                         return true;
                     }
                     serial.remove(t);
-                    sender.sendMessage("§c§l[Man10SerialCode] §r削除しました");
+                    for (File file : configfile.listFiles()){
+                        if (!file.getName().equals(args[1] + ".yml")) continue;
+                        if (file.delete()) {
+                            serial.remove(t);
+                            sender.sendMessage("§c§l[Man10SerialCode] §r削除しました");
+                        }else{
+                            sender.sendMessage("§c§l[Man10SerialCode] §rファイルの削除に失敗しました");
+                        }
+                        return true;
+                    }
+                    sender.sendMessage("§c§l[Man10SerialCode] §rファイルが見つかりませんでした");
                     return true;
                 }
                 else if (args[0].equals("sub") && sender.hasPermission("mserial.op")){
@@ -112,10 +123,13 @@ public class Command implements CommandExecutor, TabCompleter {
                         }
                         addsublist.get((Player) sender).sub = parseInt(args[1]);
                         serial.add(addsublist.get((Player) sender));
+                        Config.CreateSerial(addsublist.get((Player) sender));
                         addsublist.remove((Player) sender);
+                        sender.sendMessage("§c§l[Man10SerialCode] §r追加しました");
                         return true;
                     }
                 }
+                sender.sendMessage("§c§l[Man10SerialCode] §r/mserial help でhelpを表示");
                 break;
 
             case 3:

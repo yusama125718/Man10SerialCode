@@ -17,6 +17,6 @@ public class Function {
     }
 
     public static boolean checknull(YamlConfiguration file){
-        return file.getString("name") != null && file.getString("code") != null && file.getItemStack("reward") != null && file.getString("mode") != null && file.getString("span") != null && file.getString("count") != null;
+        return file.getString("name") != null && file.getString("code") != null && file.getItemStack("reward") != null && file.getString("mode") != null && file.getString("span") != null && file.getString("count") != null && file.getString("sub") != null;
     }
 }

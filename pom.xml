@@ -70,5 +70,12 @@
             <version>1.17.1-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>red.man10</groupId>
+            <artifactId>Man10Score</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/Man10Score.jar</systemPath>
+        </dependency>
     </dependencies>
 </project>
