@@ -257,6 +257,10 @@ public class Event implements Listener {
                 e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rクールタイムです");
                 return;
             }
+            else if (t.span == 4 && between != 0){      //スパン１月
+                e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rクールタイムです");
+                return;
+            }
             if (e.getWhoClicked().getInventory().firstEmpty() == -1){
                 e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rインベントリが満杯のため受け取れません");
                 return;
@@ -417,6 +421,8 @@ public class Event implements Listener {
                 else if (e.getCurrentItem().equals(GetItem(Material.CLOCK, 1, "スパン：1週", 0)))
                     e.getInventory().setItem(46, GetItem(Material.CLOCK, 1, "スパン：1月", 0));
                 else if (e.getCurrentItem().equals(GetItem(Material.CLOCK, 1, "スパン：1月", 0)))
+                    e.getInventory().setItem(46, GetItem(Material.CLOCK, 1, "スパン：無限", 0));
+                else if (e.getCurrentItem().equals(GetItem(Material.CLOCK, 1, "スパン：無限", 0)))
                     e.getInventory().setItem(46, GetItem(Material.CLOCK, 1, "スパン：無し", 0));
                 break;
 
@@ -487,6 +493,7 @@ public class Event implements Listener {
                 if (e.getInventory().getItem(46).equals(GetItem(Material.CLOCK, 1, "スパン：1日", 0))) span = 1;
                 if (e.getInventory().getItem(46).equals(GetItem(Material.CLOCK, 1, "スパン：1週", 0))) span = 2;
                 if (e.getInventory().getItem(46).equals(GetItem(Material.CLOCK, 1, "スパン：1月", 0))) span = 3;
+                if (e.getInventory().getItem(46).equals(GetItem(Material.CLOCK, 1, "スパン：無限", 0))) span = 4;
                 Data.SerialCode s = new Data.SerialCode(t.name, pass.toString(), e.getInventory().getItem(29), mode, t.count, span, 0);
                 if ((e.getCurrentItem().equals(GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限：OFF", 0)))){
                     Config.CreateSerial(s);

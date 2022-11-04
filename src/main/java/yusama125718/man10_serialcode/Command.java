@@ -9,10 +9,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.util.*;
 
 import static java.lang.Integer.parseInt;
 import static yusama125718.man10_serialcode.Man10_SerialCode.*;
@@ -39,6 +38,7 @@ public class Command implements CommandExecutor, TabCompleter {
                         sender.sendMessage("§c§l[Man10SerialCode] §r/mserial add [内部名] [回数] シリアルコードを追加します(0で回数無限)");
                         sender.sendMessage("※モードが全体制限の時は回数は全体の回数になり、個人制限の時は1人毎の回数になります。");
                         sender.sendMessage("§c§l[Man10SerialCode] §r/mserial deletedata [内部名] [コード] DBのデータを削除します");
+                        sender.sendMessage("§c§l[Man10SerialCode] §r/mserial stats [内部名] [コード] DBのデータを参照して使用状況を表示します");
                     }
                     sender.sendMessage("§c§l[Man10SerialCode] §r/mserial 入力画面を開きます");
                     return true;
@@ -170,6 +170,45 @@ public class Command implements CommandExecutor, TabCompleter {
                     th.start();
                     return true;
                 }
+                else if (args[0].equals("stats") && sender.hasPermission("mserial.op")){
+                    Thread th = new Thread(() -> {
+                        int use = 0;
+                        boolean active = false;
+                        LocalDateTime last = null;
+                        Data.SerialCode t = null;
+                        for (Data.SerialCode s : serial){
+                            if (s.name.equals(args[1]) && s.code.equals(args[2])) active = true;
+                            t = s;
+                        }
+                        MySQLManager mysql = new MySQLManager(mserial, "mserial");
+                        ResultSet res = mysql.query("select time, serial, code, name, uuid from mserial_data where code = '"+ args[2] +"' and serial = '"+ args[1] +"'");
+                        if (res == null){
+                            sender.sendMessage("§c§l[Man10SerialCode] §rDB接続に失敗しました");
+                            return;
+                        }
+                        while (true){
+                            try {
+                                if (!res.next()) break;
+                                use++;
+                                if (last == null || LocalDateTime.parse(res.getString("time")).isAfter(last)) last = LocalDateTime.parse(res.getString("time"));
+                            } catch (SQLException throwables) {
+                                throwables.printStackTrace();
+                            }
+                        }
+                        if (use == 0 && !active){
+                            sender.sendMessage("§c§l[Man10SerialCode] §rそのコードはデータが存在しません");
+                            return;
+                        }
+                        sender.sendMessage("§c§l[Man10SerialCode] §r内部名："+ args[1]);
+                        sender.sendMessage("§c§l[Man10SerialCode] §rコード："+ args[2]);
+                        sender.sendMessage("§e§l=====================================================");
+                        sender.sendMessage("§c§l[Man10SerialCode] §r使用回数："+ use);
+                        sender.sendMessage("§c§l[Man10SerialCode] §rレシピが存在するか："+ active);
+                        sender.sendMessage("§c§l[Man10SerialCode] §r最終仕様日時："+ last);
+                    });
+                    th.start();
+                    return true;
+                }
                 sender.sendMessage("§c§l[Man10SerialCode] §r/mserial help でhelpを表示");
                 break;
 
@@ -185,7 +224,7 @@ public class Command implements CommandExecutor, TabCompleter {
         if (!sender.hasPermission("mserial.p")) return null;
         if (args.length == 1){
             if (args[0].length() == 0){
-                if (sender.hasPermission("mserial.op")) return Arrays.asList("add", "delete", "help", "list", "off", "on");
+                if (sender.hasPermission("mserial.op")) return Arrays.asList("add", "delete", "help", "list", "off", "on", "stats");
                 else return Collections.singletonList("help");
             } else if ("help".startsWith(args[0])) return Collections.singletonList("help");
             else if (sender.hasPermission("mserial.op")){
@@ -195,15 +234,19 @@ public class Command implements CommandExecutor, TabCompleter {
                 else if ("on".startsWith(args[0]) && "off".startsWith(args[0])) return Arrays.asList("on", "off");
                 else if ("on".startsWith(args[0])) return Collections.singletonList("on");
                 else if ("off".startsWith(args[0])) return Collections.singletonList("off");
+                else if ("stats".startsWith(args[0])) return Collections.singletonList("stats");
             }
         } else if (args.length == 2 && sender.hasPermission("mserial,op")){
-            if (args[0].equals("add")) return Collections.singletonList("[内部名]");
+            if (args[0].equals("add") || args[0].equals("stats")) return Collections.singletonList("[内部名]");
             else if (args[0].equals("delete")) {
                 ArrayList<String> list = new ArrayList<>();
                 for (Data.SerialCode s : serial) list.add(s.name);
                 return list;
             }
-        } else if (args.length == 3 && sender.hasPermission("mserial,op") && args[0].equals("add")) return Collections.singletonList("[回数]");
+        } else if (args.length == 3 && sender.hasPermission("mserial,op")){
+            if (args[0].equals("add")) return Collections.singletonList("[回数]");
+            else if (args[0].equals("stats")) return Collections.singletonList("[コード]");
+        }
         return null;
     }
 }

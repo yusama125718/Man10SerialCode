@@ -113,6 +113,7 @@ public class GUI {
         else if (serial.get(n).span == 1) inv.setItem(23, GetItem(Material.CLOCK, 1, "スパン：1日", 0));
         else if (serial.get(n).span == 2) inv.setItem(23, GetItem(Material.CLOCK, 1, "スパン：1週", 0));
         else if (serial.get(n).span == 3) inv.setItem(23, GetItem(Material.CLOCK, 1, "スパン：1月", 0));
+        else if (serial.get(n).span == 4) inv.setItem(23, GetItem(Material.CLOCK, 1, "スパン：無限", 0));
         if (serial.get(n).sub == 0) inv.setItem(24, GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限：無し", 0));
         else inv.setItem(24, GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限："+ serial.get(n).sub, 0));
         if (serial.get(n).mode) inv.setItem(25, GetItem(Material.COMPASS, 1, "モード：全体制限", 0));
