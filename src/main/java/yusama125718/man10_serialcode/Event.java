@@ -144,6 +144,7 @@ public class Event implements Listener {
                 for (int i = 0; i < 9; i++){
                     if (e.getInventory().getItem(i) != null) continue;
                     if (i == 0) break;
+                    if (i == 8) e.getInventory().setItem(i, null);
                     e.getInventory().setItem(i - 1, null);
                     break;
                 }
