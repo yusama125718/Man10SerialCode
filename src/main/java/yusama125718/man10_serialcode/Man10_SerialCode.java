@@ -8,6 +8,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 public final class Man10_SerialCode extends JavaPlugin {
 
@@ -16,9 +17,9 @@ public final class Man10_SerialCode extends JavaPlugin {
     public static Boolean system;
     public static Boolean debug;
     public static File configfile;
-    public static HashMap<Player, Data.AddSerial> addlist = new HashMap<>();
-    public static HashMap<Player, Data.SerialCode> players = new HashMap<>();
-    public static HashMap<Player, Data.SerialCode> addsublist = new HashMap<>();
+    public static HashMap<UUID, Data.AddSerial> addlist = new HashMap<>();
+    public static HashMap<UUID, Data.SerialCode> players = new HashMap<>();
+    public static HashMap<UUID, Data.SerialCode> addsublist = new HashMap<>();
 
     @Override
     public void onEnable() {

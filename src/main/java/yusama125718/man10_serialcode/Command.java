@@ -149,7 +149,7 @@ public class Command implements CommandExecutor, TabCompleter {
                         sender.sendMessage("§c§l[Man10SerialCode] §r時間が無効です");
                         return true;
                     }
-                    addlist.put((Player) sender, new Data.AddSerial(args[1], parseInt(args[2])));
+                    addlist.put(((Player) sender).getUniqueId(), new Data.AddSerial(args[1], parseInt(args[2])));
                     GUI.AddGUI((Player) sender);
                     return true;
                 }

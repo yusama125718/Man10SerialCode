@@ -22,6 +22,7 @@ import java.util.UUID;
 import static java.lang.Integer.parseInt;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.event.ClickEvent.suggestCommand;
+import static yusama125718.man10_serialcode.Function.AddNumber;
 import static yusama125718.man10_serialcode.GUI.*;
 import static yusama125718.man10_serialcode.Man10_SerialCode.*;
 
@@ -142,35 +143,23 @@ public class Event implements Listener {
 
             case 43: //delete
                 for (int i = 0; i < 9; i++){
+                    if (i == 8){
+                        e.getInventory().setItem(i, null);
+                        break;
+                    }
                     if (e.getInventory().getItem(i) != null) continue;
                     if (i == 0) break;
-                    if (i == 8) e.getInventory().setItem(i, null);
                     e.getInventory().setItem(i - 1, null);
                     break;
                 }
                 break;
 
             case 52:
-                StringBuilder pass = new StringBuilder();
-                for (int i = 0; i < 9; i++){
-                    if (e.getInventory().getItem(i) == null) continue;
-                    if (e.getInventory().getItem(i).equals(GetItem(Material.QUARTZ, 1, "0", 48))) pass.append("0");
-                    else if (e.getInventory().getItem(i).equals(GetItem(Material.QUARTZ, 1, "1", 49))) pass.append("1");
-                    else if (e.getInventory().getItem(i).equals(GetItem(Material.QUARTZ, 1, "2", 50))) pass.append("2");
-                    else if (e.getInventory().getItem(i).equals(GetItem(Material.QUARTZ, 1, "3", 51))) pass.append("3");
-                    else if (e.getInventory().getItem(i).equals(GetItem(Material.QUARTZ, 1, "4", 52))) pass.append("4");
-                    else if (e.getInventory().getItem(i).equals(GetItem(Material.QUARTZ, 1, "5", 53))) pass.append("5");
-                    else if (e.getInventory().getItem(i).equals(GetItem(Material.QUARTZ, 1, "6", 54))) pass.append("6");
-                    else if (e.getInventory().getItem(i).equals(GetItem(Material.QUARTZ, 1, "7", 55))) pass.append("7");
-                    else if (e.getInventory().getItem(i).equals(GetItem(Material.QUARTZ, 1, "8", 56))) pass.append("8");
-                    else if (e.getInventory().getItem(i).equals(GetItem(Material.QUARTZ, 1, "9", 57))) pass.append("9");
-                    else if (e.getInventory().getItem(i).equals(GetItem(Material.QUARTZ, 1, "-", 45))) pass.append("-");
-                    else if (e.getInventory().getItem(i).equals(GetItem(Material.QUARTZ, 1, "*", 42))) pass.append("*");
-                }
+                StringBuilder pass = AddNumber(e.getInventory());
                 if (pass.toString().equals("")) return;
                 for (Data.SerialCode s : serial){
                     if (!s.code.equals(pass.toString())) continue;
-                    players.put((Player) e.getWhoClicked(), s);
+                    players.put(e.getWhoClicked().getUniqueId(), s);
                     RewardGUI((Player) e.getWhoClicked(), s);
                     break;
                 }
@@ -184,7 +173,7 @@ public class Event implements Listener {
         e.setCancelled(true);
         if (e.getRawSlot() != 22) return;
         Thread th = new Thread(() -> {
-            Data.SerialCode t = players.get((Player) e.getWhoClicked());
+            Data.SerialCode t = players.get(e.getWhoClicked().getUniqueId());
             MySQLManager mysql = new MySQLManager(mserial, "mserial");
             int Count = 0;
             ResultSet res = mysql.query("select time, serial, code, name, uuid from mserial_data where code = '"+ t.code +"' and serial = '"+ t.name +"'");
@@ -236,7 +225,7 @@ public class Event implements Listener {
                 throwables.printStackTrace();
             }
             long between = 0;
-            if (time == null) between = 30;
+            if (time == null) between = -1;
             else between = ChronoUnit.DAYS.between(time,LocalDateTime.now());
             if (t.sub != 0 && !useaccount.contains(e.getWhoClicked().getUniqueId()) && useaccount.size() >= t.sub){
                 e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rこのコードで受け取れるアカウント数を超えています");
@@ -246,19 +235,19 @@ public class Event implements Listener {
                 e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rこのコードは受け取り上限に達しています");
                 return;
             }
-            if (t.span == 1 && between <= 1){      //スパン1日
+            if (t.span == 1 && between <= 1 && between != -1){      //スパン1日
                 e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rクールタイムです");
                 return;
             }
-            else if (t.span == 2 && between <= 7){      //スパン１週
+            else if (t.span == 2 && between <= 7 && between != -1){      //スパン１週
                 e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rクールタイムです");
                 return;
             }
-            else if (t.span == 3 && between <= 30){      //スパン１月
+            else if (t.span == 3 && between <= 30 && between != -1){      //スパン１月
                 e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rクールタイムです");
                 return;
             }
-            else if (t.span == 4 && between != 0){      //スパン１月
+            else if (t.span == 4 && between != -1){      //スパン１月
                 e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rクールタイムです");
                 return;
             }
@@ -276,7 +265,14 @@ public class Event implements Listener {
                     return;
                 }
             }
-            e.getWhoClicked().getInventory().addItem(t.reward);
+            Bukkit.getScheduler().runTask(mserial, new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    e.getWhoClicked().getInventory().addItem(t.reward.clone());
+                }
+            });
             e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §r獲得しました");
             if (debug) Bukkit.broadcast(text("§c§l[Man10SerialCode] §rデバッグ："+e.getWhoClicked().getName()+"が"+ t.name +"を受け取りました。"),"mserial.op");
         });
@@ -290,8 +286,8 @@ public class Event implements Listener {
     @EventHandler
     public void RewardGUIClose(InventoryCloseEvent e) {
         if (!e.getView().title().equals(text("[Man10SerialCode] 受け取り画面")) || players == null) return;
-        if (!players.containsKey((Player) e.getPlayer())) return;
-        players.remove((Player) e.getPlayer());
+        if (!players.containsKey(e.getPlayer().getUniqueId())) return;
+        players.remove(e.getPlayer().getUniqueId());
     }
 
     @EventHandler
@@ -407,6 +403,10 @@ public class Event implements Listener {
 
             case 43: //delete
                 for (int i = 0; i < 9; i++) {
+                    if (i == 8){
+                        e.getInventory().setItem(i, null);
+                        break;
+                    }
                     if (e.getInventory().getItem(i) != null) continue;
                     if (i == 0) break;
                     e.getInventory().setItem(i - 1, null);
@@ -415,51 +415,27 @@ public class Event implements Listener {
                 break;
 
             case 46:
-                if (e.getCurrentItem().equals(GetItem(Material.CLOCK, 1, "スパン：無し", 0)))
-                    e.getInventory().setItem(46, GetItem(Material.CLOCK, 1, "スパン：1日", 0));
-                else if (e.getCurrentItem().equals(GetItem(Material.CLOCK, 1, "スパン：1日", 0)))
-                    e.getInventory().setItem(46, GetItem(Material.CLOCK, 1, "スパン：1週", 0));
-                else if (e.getCurrentItem().equals(GetItem(Material.CLOCK, 1, "スパン：1週", 0)))
-                    e.getInventory().setItem(46, GetItem(Material.CLOCK, 1, "スパン：1月", 0));
-                else if (e.getCurrentItem().equals(GetItem(Material.CLOCK, 1, "スパン：1月", 0)))
-                    e.getInventory().setItem(46, GetItem(Material.CLOCK, 1, "スパン：無限", 0));
-                else if (e.getCurrentItem().equals(GetItem(Material.CLOCK, 1, "スパン：無限", 0)))
-                    e.getInventory().setItem(46, GetItem(Material.CLOCK, 1, "スパン：無し", 0));
+                if (e.getCurrentItem().isSimilar(GetItem(Material.CLOCK, 1, "スパン：無し", 0))) e.getInventory().setItem(46, GetItem(Material.CLOCK, 1, "スパン：1日", 0));
+                else if (e.getCurrentItem().isSimilar(GetItem(Material.CLOCK, 1, "スパン：1日", 0))) e.getInventory().setItem(46, GetItem(Material.CLOCK, 1, "スパン：1週", 0));
+                else if (e.getCurrentItem().isSimilar(GetItem(Material.CLOCK, 1, "スパン：1週", 0))) e.getInventory().setItem(46, GetItem(Material.CLOCK, 1, "スパン：1月", 0));
+                else if (e.getCurrentItem().isSimilar(GetItem(Material.CLOCK, 1, "スパン：1月", 0))) e.getInventory().setItem(46, GetItem(Material.CLOCK, 1, "スパン：無限", 0));
+                else if (e.getCurrentItem().isSimilar(GetItem(Material.CLOCK, 1, "スパン：無限", 0))) e.getInventory().setItem(46, GetItem(Material.CLOCK, 1, "スパン：無し", 0));
                 break;
 
             case 47:
-                if (e.getCurrentItem().equals(GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限：OFF", 0)))
-                    e.getInventory().setItem(47, GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限：ON", 0));
-                else if (e.getCurrentItem().equals(GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限：ON", 0)))
-                    e.getInventory().setItem(47, GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限：OFF", 0));
+                if (e.getCurrentItem().isSimilar(GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限：OFF", 0))) e.getInventory().setItem(47, GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限：ON", 0));
+                else if (e.getCurrentItem().isSimilar(GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限：ON", 0))) e.getInventory().setItem(47, GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限：OFF", 0));
 
             case 48:
-                if (e.getCurrentItem().equals(GetItem(Material.COMPASS, 1, "モード：個人制限", 0)))
-                    e.getInventory().setItem(48, GetItem(Material.COMPASS, 1, "モード：全体制限", 0));
-                else if (e.getCurrentItem().equals(GetItem(Material.COMPASS, 1, "モード：全体制限", 0)))
-                    e.getInventory().setItem(48, GetItem(Material.COMPASS, 1, "モード：個人制限", 0));
+                if (e.getCurrentItem().isSimilar(GetItem(Material.COMPASS, 1, "モード：個人制限", 0))) e.getInventory().setItem(48, GetItem(Material.COMPASS, 1, "モード：全体制限", 0));
+                else if (e.getCurrentItem().isSimilar(GetItem(Material.COMPASS, 1, "モード：全体制限", 0))) e.getInventory().setItem(48, GetItem(Material.COMPASS, 1, "モード：個人制限", 0));
                 break;
 
             case 52:
                 if (e.getInventory().getItem(29) == null) return;
-                StringBuilder pass = new StringBuilder();
-                for (int i = 0; i < 9; i++) {
-                    if (e.getInventory().getItem(i) == null) continue;
-                    if (e.getInventory().getItem(i).equals(GetItem(Material.QUARTZ, 1, "0", 48))) pass.append("0");
-                    else if (e.getInventory().getItem(i).equals(GetItem(Material.QUARTZ, 1, "1", 49))) pass.append("1");
-                    else if (e.getInventory().getItem(i).equals(GetItem(Material.QUARTZ, 1, "2", 50))) pass.append("2");
-                    else if (e.getInventory().getItem(i).equals(GetItem(Material.QUARTZ, 1, "3", 51))) pass.append("3");
-                    else if (e.getInventory().getItem(i).equals(GetItem(Material.QUARTZ, 1, "4", 52))) pass.append("4");
-                    else if (e.getInventory().getItem(i).equals(GetItem(Material.QUARTZ, 1, "5", 53))) pass.append("5");
-                    else if (e.getInventory().getItem(i).equals(GetItem(Material.QUARTZ, 1, "6", 54))) pass.append("6");
-                    else if (e.getInventory().getItem(i).equals(GetItem(Material.QUARTZ, 1, "7", 55))) pass.append("7");
-                    else if (e.getInventory().getItem(i).equals(GetItem(Material.QUARTZ, 1, "8", 56))) pass.append("8");
-                    else if (e.getInventory().getItem(i).equals(GetItem(Material.QUARTZ, 1, "9", 57))) pass.append("9");
-                    else if (e.getInventory().getItem(i).equals(GetItem(Material.QUARTZ, 1, "-", 45))) pass.append("-");
-                    else if (e.getInventory().getItem(i).equals(GetItem(Material.QUARTZ, 1, "*", 42))) pass.append("*");
-                }
+                StringBuilder pass = AddNumber(e.getInventory());
                 if (pass.toString().equals("")) return;
-                Data.AddSerial t = addlist.get((Player) e.getWhoClicked());
+                Data.AddSerial t = addlist.get(e.getWhoClicked().getUniqueId());
                 Thread th = new Thread(() -> {
                     MySQLManager mysql = new MySQLManager(mserial, "mserial");
                     ResultSet res = mysql.query("select count(*) from mserial_data where code = '"+ pass +"' and serial = '"+ t.name +"'");
@@ -501,8 +477,8 @@ public class Event implements Listener {
                     serial.add(s);
                     e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §r追加しました");
                 } else {
-                    addsublist.remove((Player) e.getWhoClicked());
-                    addsublist.put((Player) e.getWhoClicked(), s);
+                    addsublist.remove(e.getWhoClicked().getUniqueId());
+                    addsublist.put(e.getWhoClicked().getUniqueId(), s);
                     e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §r/mserial sub [数] で制限する数を設定してください");
                     e.getWhoClicked().sendMessage(text("§c§l[ここをクリックで自動入力する]").clickEvent(suggestCommand("/mserial sub ")));
                 }
