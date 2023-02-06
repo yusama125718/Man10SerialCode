@@ -115,19 +115,18 @@ public class Command implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 else if (args[0].equals("sub") && sender.hasPermission("mserial.op")){
-                    if (addsublist != null || addsublist.containsKey((Player) sender)){
-                        boolean isNumeric = args[1].matches("-?\\d+");
-                        if (!isNumeric){
-                            sender.sendMessage("§c§l[Man10SerialCode] §r数字が無効です");
-                            return true;
-                        }
-                        addsublist.get((Player) sender).sub = parseInt(args[1]);
-                        serial.add(addsublist.get((Player) sender));
-                        Config.CreateSerial(addsublist.get((Player) sender));
-                        addsublist.remove((Player) sender);
-                        sender.sendMessage("§c§l[Man10SerialCode] §r追加しました");
+                    if (addsublist == null || !addsublist.containsKey(((Player) sender).getUniqueId())) return true;
+                    boolean isNumeric = args[1].matches("-?\\d+");
+                    if (!isNumeric){
+                        sender.sendMessage("§c§l[Man10SerialCode] §r数字が無効です");
                         return true;
                     }
+                    addsublist.get(((Player) sender).getUniqueId()).sub = parseInt(args[1]);
+                    serial.add(addsublist.get(((Player) sender).getUniqueId()));
+                    Config.CreateSerial(addsublist.get(((Player) sender).getUniqueId()));
+                    addsublist.remove(((Player) sender).getUniqueId());
+                    sender.sendMessage("§c§l[Man10SerialCode] §r追加しました");
+                    return true;
                 }
                 sender.sendMessage("§c§l[Man10SerialCode] §r/mserial help でhelpを表示");
                 break;

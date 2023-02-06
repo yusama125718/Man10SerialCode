@@ -472,7 +472,7 @@ public class Event implements Listener {
                 if (e.getInventory().getItem(46).equals(GetItem(Material.CLOCK, 1, "スパン：1月", 0))) span = 3;
                 if (e.getInventory().getItem(46).equals(GetItem(Material.CLOCK, 1, "スパン：無限", 0))) span = 4;
                 Data.SerialCode s = new Data.SerialCode(t.name, pass.toString(), e.getInventory().getItem(29), mode, t.count, span, 0);
-                if ((e.getCurrentItem().equals(GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限：OFF", 0)))){
+                if ((e.getInventory().getItem(47).isSimilar(GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限：OFF", 0)))){
                     Config.CreateSerial(s);
                     serial.add(s);
                     e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §r追加しました");
