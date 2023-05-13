@@ -1,7 +1,7 @@
 name: Man10_SerialCode
 version: '${project.version}'
 main: yusama125718.man10_serialcode.Man10_SerialCode
-api-version: 1.17
+api-version: 1.19
 
 commands:
   mserial:

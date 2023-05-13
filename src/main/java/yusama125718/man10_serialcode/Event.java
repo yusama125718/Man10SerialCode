@@ -422,10 +422,6 @@ public class Event implements Listener {
                 else if (e.getCurrentItem().isSimilar(GetItem(Material.CLOCK, 1, "スパン：無限", 0))) e.getInventory().setItem(46, GetItem(Material.CLOCK, 1, "スパン：無し", 0));
                 break;
 
-            case 47:
-                if (e.getCurrentItem().isSimilar(GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限：OFF", 0))) e.getInventory().setItem(47, GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限：ON", 0));
-                else if (e.getCurrentItem().isSimilar(GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限：ON", 0))) e.getInventory().setItem(47, GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限：OFF", 0));
-
             case 48:
                 if (e.getCurrentItem().isSimilar(GetItem(Material.COMPASS, 1, "モード：個人制限", 0))) e.getInventory().setItem(48, GetItem(Material.COMPASS, 1, "モード：全体制限", 0));
                 else if (e.getCurrentItem().isSimilar(GetItem(Material.COMPASS, 1, "モード：全体制限", 0))) e.getInventory().setItem(48, GetItem(Material.COMPASS, 1, "モード：個人制限", 0));
@@ -472,16 +468,11 @@ public class Event implements Listener {
                 if (e.getInventory().getItem(46).equals(GetItem(Material.CLOCK, 1, "スパン：1月", 0))) span = 3;
                 if (e.getInventory().getItem(46).equals(GetItem(Material.CLOCK, 1, "スパン：無限", 0))) span = 4;
                 Data.SerialCode s = new Data.SerialCode(t.name, pass.toString(), e.getInventory().getItem(29), mode, t.count, span, 0);
-                if ((e.getInventory().getItem(47).isSimilar(GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限：OFF", 0)))){
-                    Config.CreateSerial(s);
-                    serial.add(s);
-                    e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §r追加しました");
-                } else {
-                    addsublist.remove(e.getWhoClicked().getUniqueId());
-                    addsublist.put(e.getWhoClicked().getUniqueId(), s);
-                    e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §r/mserial sub [数] で制限する数を設定してください");
-                    e.getWhoClicked().sendMessage(text("§c§l[ここをクリックで自動入力する]").clickEvent(suggestCommand("/mserial sub ")));
-                }
+                addsublist.remove(e.getWhoClicked().getUniqueId());
+                addsublist.put(e.getWhoClicked().getUniqueId(), s);
+                e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §r/mserial sub [数] で制限する数を設定してください");
+                e.getWhoClicked().sendMessage("§0を入力することでOFFになります");
+                e.getWhoClicked().sendMessage(text("§c§l[ここをクリックで自動入力する]").clickEvent(suggestCommand("/mserial sub ")));
                 e.getInventory().close();
                 break;
         }

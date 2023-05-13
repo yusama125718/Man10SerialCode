@@ -65,7 +65,7 @@ public class GUI {
         inv.setItem(37, GetItem(Material.WHITE_STAINED_GLASS_PANE, 1, "", 1));
         inv.setItem(38, GetItem(Material.BLACK_STAINED_GLASS_PANE, 1, "枠内にリワードをセット", 1));
         inv.setItem(46, GetItem(Material.CLOCK, 1, "スパン：無し", 0));
-        inv.setItem(47, GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限：OFF", 0));
+        inv.setItem(47, GetItem(Material.WHITE_STAINED_GLASS_PANE, 1, "", 1));
         inv.setItem(48, GetItem(Material.COMPASS, 1, "モード：個人制限", 0));
         p.openInventory(inv);
     }

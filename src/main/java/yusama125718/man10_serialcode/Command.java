@@ -121,7 +121,8 @@ public class Command implements CommandExecutor, TabCompleter {
                         sender.sendMessage("§c§l[Man10SerialCode] §r数字が無効です");
                         return true;
                     }
-                    addsublist.get(((Player) sender).getUniqueId()).sub = parseInt(args[1]);
+                    int a = parseInt(args[1]);
+                    addsublist.get(((Player) sender).getUniqueId()).sub = a;
                     serial.add(addsublist.get(((Player) sender).getUniqueId()));
                     Config.CreateSerial(addsublist.get(((Player) sender).getUniqueId()));
                     addsublist.remove(((Player) sender).getUniqueId());
