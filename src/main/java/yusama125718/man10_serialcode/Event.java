@@ -176,6 +176,7 @@ public class Event implements Listener {
             Data.SerialCode t = players.get(e.getWhoClicked().getUniqueId());
             MySQLManager mysql = new MySQLManager(mserial, "mserial");
             int Count = 0;
+            int pCount = 0;
             ResultSet res = mysql.query("select time, serial, code, name, uuid from mserial_data where code = '"+ t.code +"' and serial = '"+ t.name +"'");
             LocalDateTime time = null;
             List<UUID> useaccount = new ArrayList<>();
@@ -207,8 +208,8 @@ public class Event implements Listener {
                             else if (time == null) time = LocalDateTime.parse(res.getString("time"));
                         }
                         if (t.sub != 0 && account.contains(UUID.fromString(res.getString("uuid"))) && !useaccount.contains(UUID.fromString(res.getString("uuid")))) useaccount.add(UUID.fromString(res.getString("uuid")));
-                        if (t.mode) Count++;
-                        else if (res.getString("uuid").equals(e.getWhoClicked().getUniqueId().toString())) Count++;
+                        if (t.publiccount != 0) Count++;
+                        else if (t.count != 0 && res.getString("uuid").equals(e.getWhoClicked().getUniqueId().toString())) Count++;
                     } catch (SQLException throwables) {
                         throwables.printStackTrace();
                     }
@@ -232,6 +233,10 @@ public class Event implements Listener {
                 return;
             }
             if (Count >= t.count && t.count != 0) {
+                e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rこのコードは受け取り上限に達しています");
+                return;
+            }
+            if (pCount >= t.publiccount && t.publiccount != 0) {
                 e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rこのコードは受け取り上限に達しています");
                 return;
             }
@@ -422,26 +427,21 @@ public class Event implements Listener {
                 else if (e.getCurrentItem().isSimilar(GetItem(Material.CLOCK, 1, "スパン：無限", 0))) e.getInventory().setItem(46, GetItem(Material.CLOCK, 1, "スパン：無し", 0));
                 break;
 
-            case 48:
-                if (e.getCurrentItem().isSimilar(GetItem(Material.COMPASS, 1, "モード：個人制限", 0))) e.getInventory().setItem(48, GetItem(Material.COMPASS, 1, "モード：全体制限", 0));
-                else if (e.getCurrentItem().isSimilar(GetItem(Material.COMPASS, 1, "モード：全体制限", 0))) e.getInventory().setItem(48, GetItem(Material.COMPASS, 1, "モード：個人制限", 0));
-                break;
-
-            case 52:
+           case 52:
                 if (e.getInventory().getItem(29) == null) return;
                 StringBuilder pass = AddNumber(e.getInventory());
                 if (pass.toString().equals("")) return;
-                Data.AddSerial t = addlist.get(e.getWhoClicked().getUniqueId());
+                String  t = addlist.get(e.getWhoClicked().getUniqueId());
                 Thread th = new Thread(() -> {
                     MySQLManager mysql = new MySQLManager(mserial, "mserial");
-                    ResultSet res = mysql.query("select count(*) from mserial_data where code = '"+ pass +"' and serial = '"+ t.name +"'");
+                    ResultSet res = mysql.query("select count(*) from mserial_data where code = '"+ pass +"' and serial = '"+ t +"'");
                     if (res == null) {
                         e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rDBの接続に失敗しました");
                     } else {
                         try {
                             if (res.next()) {
                                 if (res.getInt("count(*)") != 0){
-                                    e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §r"+ t.name +"で"+ pass +"のコードはデータが存在しています");
+                                    e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §r"+ t +"で"+ pass +"のコードはデータが存在しています");
                                     e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §r削除したい場合は /mserial deletedata [内部名] [コード] で削除できます");
                                 }
                             }
@@ -461,17 +461,15 @@ public class Event implements Listener {
                     }
                 });
                 th.start();
-                boolean mode = e.getInventory().getItem(48).equals(GetItem(Material.COMPASS, 1, "モード：全体制限", 0));
                 byte span = 0;
                 if (e.getInventory().getItem(46).equals(GetItem(Material.CLOCK, 1, "スパン：1日", 0))) span = 1;
-                if (e.getInventory().getItem(46).equals(GetItem(Material.CLOCK, 1, "スパン：1週", 0))) span = 2;
-                if (e.getInventory().getItem(46).equals(GetItem(Material.CLOCK, 1, "スパン：1月", 0))) span = 3;
-                if (e.getInventory().getItem(46).equals(GetItem(Material.CLOCK, 1, "スパン：無限", 0))) span = 4;
-                Data.SerialCode s = new Data.SerialCode(t.name, pass.toString(), e.getInventory().getItem(29), mode, t.count, span, 0);
+                else if (e.getInventory().getItem(46).equals(GetItem(Material.CLOCK, 1, "スパン：1週", 0))) span = 2;
+                else if (e.getInventory().getItem(46).equals(GetItem(Material.CLOCK, 1, "スパン：1月", 0))) span = 3;
+                else if (e.getInventory().getItem(46).equals(GetItem(Material.CLOCK, 1, "スパン：無限", 0))) span = 4;
+                Data.SerialCode s = new Data.SerialCode(t, pass.toString(), e.getInventory().getItem(29), 0, 0, span, 0);
                 addsublist.remove(e.getWhoClicked().getUniqueId());
                 addsublist.put(e.getWhoClicked().getUniqueId(), s);
-                e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §r/mserial sub [数] で制限する数を設定してください");
-                e.getWhoClicked().sendMessage("§0を入力することでOFFになります");
+                e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §r/mserial sub [数] で制限する数を設定してください(0で無制限)");
                 e.getWhoClicked().sendMessage(text("§c§l[ここをクリックで自動入力する]").clickEvent(suggestCommand("/mserial sub ")));
                 e.getInventory().close();
                 break;

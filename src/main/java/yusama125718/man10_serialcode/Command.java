@@ -14,6 +14,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static java.lang.Integer.parseInt;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.event.ClickEvent.suggestCommand;
 import static yusama125718.man10_serialcode.Man10_SerialCode.*;
 
 public class Command implements CommandExecutor, TabCompleter {
@@ -35,7 +37,7 @@ public class Command implements CommandExecutor, TabCompleter {
                         sender.sendMessage("§c§l[Man10SerialCode] §r/mserial on/off システムをon/offします");
                         sender.sendMessage("§c§l[Man10SerialCode] §r/mserial list シリアルコードのリストを表示します");
                         sender.sendMessage("§c§l[Man10SerialCode] §r/mserial debug on/off onにするとDBにつながらなくても処理できるようになります");
-                        sender.sendMessage("§c§l[Man10SerialCode] §r/mserial add [内部名] [回数] シリアルコードを追加します(0で回数無限)");
+                        sender.sendMessage("§c§l[Man10SerialCode] §r/mserial add [内部名]シリアルコードを追加します");
                         sender.sendMessage("※モードが全体制限の時は回数は全体の回数になり、個人制限の時は1人毎の回数になります。");
                         sender.sendMessage("§c§l[Man10SerialCode] §r/mserial deletedata [内部名] [コード] DBのデータを削除します");
                         sender.sendMessage("§c§l[Man10SerialCode] §r/mserial stats [内部名] [コード] DBのデータを参照して使用状況を表示します");
@@ -121,19 +123,39 @@ public class Command implements CommandExecutor, TabCompleter {
                         sender.sendMessage("§c§l[Man10SerialCode] §r数字が無効です");
                         return true;
                     }
-                    int a = parseInt(args[1]);
-                    addsublist.get(((Player) sender).getUniqueId()).sub = a;
+                    addsublist.get(((Player) sender).getUniqueId()).sub = parseInt(args[1]);
+                    sender.sendMessage("§c§l[Man10SerialCode] §r/mserial pCount [数] で制限する数を設定してください");
+                    sender.sendMessage(text("§c§l[ここをクリックで自動入力する]").clickEvent(suggestCommand("/mserial pCount ")));
+
+                    return true;
+                }
+                else if (args[0].equals("pCount") && sender.hasPermission("mserial.op")){
+                    if (addsublist == null || !addsublist.containsKey(((Player) sender).getUniqueId())) return true;
+                    boolean isNumeric = args[1].matches("-?\\d+");
+                    if (!isNumeric){
+                        sender.sendMessage("§c§l[Man10SerialCode] §r数字が無効です");
+                        return true;
+                    }
+                    addsublist.get(((Player) sender).getUniqueId()).publiccount = parseInt(args[1]);
+                    sender.sendMessage("§c§l[Man10SerialCode] §r/mserial Count [数] で制限する数を設定してください");
+                    sender.sendMessage(text("§c§l[ここをクリックで自動入力する]").clickEvent(suggestCommand("/mserial Count ")));
+                    return true;
+                }
+                else if (args[0].equals("Count") && sender.hasPermission("mserial.op")){
+                    if (addsublist == null || !addsublist.containsKey(((Player) sender).getUniqueId())) return true;
+                    boolean isNumeric = args[1].matches("-?\\d+");
+                    if (!isNumeric){
+                        sender.sendMessage("§c§l[Man10SerialCode] §r数字が無効です");
+                        return true;
+                    }
+                    addsublist.get(((Player) sender).getUniqueId()).count = parseInt(args[1]);
                     serial.add(addsublist.get(((Player) sender).getUniqueId()));
                     Config.CreateSerial(addsublist.get(((Player) sender).getUniqueId()));
                     addsublist.remove(((Player) sender).getUniqueId());
                     sender.sendMessage("§c§l[Man10SerialCode] §r追加しました");
                     return true;
                 }
-                sender.sendMessage("§c§l[Man10SerialCode] §r/mserial help でhelpを表示");
-                break;
-
-            case 3:
-                if (args[0].equals("add") && sender.hasPermission("mserial.op")){
+                else if (args[0].equals("add") && sender.hasPermission("mserial.op")){
                     if (args[1].length() > 20){
                         sender.sendMessage("§c§l[Man10SerialCode] §r内部名は20文字以下にしてください");
                         return true;
@@ -144,16 +166,15 @@ public class Command implements CommandExecutor, TabCompleter {
                             return true;
                         }
                     }
-                    boolean isNumeric = args[2].matches("-?\\d+");
-                    if (!isNumeric){
-                        sender.sendMessage("§c§l[Man10SerialCode] §r時間が無効です");
-                        return true;
-                    }
-                    addlist.put(((Player) sender).getUniqueId(), new Data.AddSerial(args[1], parseInt(args[2])));
+                    addlist.put(((Player) sender).getUniqueId(), args[1]);
                     GUI.AddGUI((Player) sender);
                     return true;
                 }
-                else if (args[0].equals("deletedata") && sender.hasPermission("mserial.op")){
+                sender.sendMessage("§c§l[Man10SerialCode] §r/mserial help でhelpを表示");
+                break;
+
+            case 3:
+                if (args[0].equals("deletedata") && sender.hasPermission("mserial.op")){
                     if (args[1].length() > 20){
                         sender.sendMessage("§c§l[Man10SerialCode] §r内部名は20文字以下にしてください");
                         return true;

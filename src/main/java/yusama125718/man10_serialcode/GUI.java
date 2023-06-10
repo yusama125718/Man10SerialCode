@@ -1,5 +1,6 @@
 package yusama125718.man10_serialcode;
 
+
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -66,7 +67,7 @@ public class GUI {
         inv.setItem(38, GetItem(Material.BLACK_STAINED_GLASS_PANE, 1, "枠内にリワードをセット", 1));
         inv.setItem(46, GetItem(Material.CLOCK, 1, "スパン：無し", 0));
         inv.setItem(47, GetItem(Material.WHITE_STAINED_GLASS_PANE, 1, "", 1));
-        inv.setItem(48, GetItem(Material.COMPASS, 1, "モード：個人制限", 0));
+        inv.setItem(48, GetItem(Material.WHITE_STAINED_GLASS_PANE, 1, "", 1));
         p.openInventory(inv);
     }
 
@@ -116,9 +117,8 @@ public class GUI {
         else if (serial.get(n).span == 4) inv.setItem(23, GetItem(Material.CLOCK, 1, "スパン：無限", 0));
         if (serial.get(n).sub == 0) inv.setItem(24, GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限：無し", 0));
         else inv.setItem(24, GetItem(Material.TOTEM_OF_UNDYING, 1, "IP制限："+ serial.get(n).sub, 0));
-        if (serial.get(n).mode) inv.setItem(25, GetItem(Material.COMPASS, 1, "モード：全体制限", 0));
-        else inv.setItem(25,GetItem(Material.COMPASS, 1, "モード：個人制限", 0));
-        inv.setItem(29,GetItem(Material.BLACK_STAINED_GLASS_PANE, 1, "リワードの受け取り回数："+serial.get(n).count, 1));
+        inv.setItem(25, GetItem(Material.COMPASS, 1, "全体制限："+ serial.get(n).publiccount, 0));
+        inv.setItem(26,GetItem(Material.COMPASS, 1, "個人制限："+ serial.get(n).count, 0));
         p.openInventory(inv);
     }
 }

@@ -7,27 +7,18 @@ public class Data {
         public String name;
         public String code;
         public ItemStack reward;
-        public Boolean mode;
         public Integer count;
+        public Integer publiccount;
         public Byte span;
         public Integer sub;
-        public SerialCode(String Name, String Code, ItemStack Reward, Boolean Mode, Integer Count, Byte Span, Integer Sub){
+        public SerialCode(String Name, String Code, ItemStack Reward, Integer pCount, Integer Count, Byte Span, Integer Sub){
             name = Name;
             code = Code;
             reward = Reward;
-            mode = Mode;
+            publiccount = pCount;
             count = Count;
             span = Span;
             sub = Sub;
-        }
-    }
-
-    public static class AddSerial{
-        public String name;
-        public Integer count;
-        public AddSerial(String Name, Integer Count){
-            name = Name;
-            count = Count;
         }
     }
 }

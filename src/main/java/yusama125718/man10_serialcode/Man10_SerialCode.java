@@ -17,7 +17,7 @@ public final class Man10_SerialCode extends JavaPlugin {
     public static Boolean system;
     public static Boolean debug;
     public static File configfile;
-    public static HashMap<UUID, Data.AddSerial> addlist = new HashMap<>();
+    public static HashMap<UUID, String> addlist = new HashMap<>();
     public static HashMap<UUID, Data.SerialCode> players = new HashMap<>();
     public static HashMap<UUID, Data.SerialCode> addsublist = new HashMap<>();
 
