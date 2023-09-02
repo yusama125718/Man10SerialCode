@@ -33,10 +33,18 @@ public class Config {
 
     public static Data.SerialCode getConfig(YamlConfiguration config, File file){
         if (!Function.checknull(config)) {
-            Bukkit.broadcast("§c§l[Man10SerialCode] §r" + file.getName() + "の読み込みに失敗しました","mserial.op");
+            Bukkit.broadcast("§c§l[Man10SerialCode] §r" + file.getName() + "の読み込みに失敗しました", "mserial.op");
             return null;
         }
-        return new Data.SerialCode(config.getString("name"), config.getString("code"), config.getItemStack("reward"), config.getInt("pcount"), config.getInt("count"), (byte) config.getInt("span"), config.getInt("sub"));
+        if (config.get("mode") != null && config.get("pcount") == null){        //互換モード
+            if (config.getBoolean("mode")){
+                return new Data.SerialCode(config.getString("name"), config.getString("code"), config.getItemStack("reward"), config.getInt("count"), 0, (byte) config.getInt("span"), config.getInt("sub"));
+            } else {
+                return new Data.SerialCode(config.getString("name"), config.getString("code"), config.getItemStack("reward"), 0, config.getInt("count"), (byte) config.getInt("span"), config.getInt("sub"));
+            }
+        } else {        //通常読み込み
+            return new Data.SerialCode(config.getString("name"), config.getString("code"), config.getItemStack("reward"), config.getInt("pcount"), config.getInt("count"), (byte) config.getInt("span"), config.getInt("sub"));
+        }
     }
 
     public static void CreateSerial(Data.SerialCode r){

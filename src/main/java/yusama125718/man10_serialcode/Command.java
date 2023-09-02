@@ -124,7 +124,7 @@ public class Command implements CommandExecutor, TabCompleter {
                         return true;
                     }
                     addsublist.get(((Player) sender).getUniqueId()).sub = parseInt(args[1]);
-                    sender.sendMessage("§c§l[Man10SerialCode] §r/mserial pCount [数] で制限する数を設定してください");
+                    sender.sendMessage("§c§l[Man10SerialCode] §r/mserial pCount [数] で全体の使用回数を制限する数を設定してください(0で無限)");
                     sender.sendMessage(text("§c§l[ここをクリックで自動入力する]").clickEvent(suggestCommand("/mserial pCount ")));
 
                     return true;
@@ -137,7 +137,7 @@ public class Command implements CommandExecutor, TabCompleter {
                         return true;
                     }
                     addsublist.get(((Player) sender).getUniqueId()).publiccount = parseInt(args[1]);
-                    sender.sendMessage("§c§l[Man10SerialCode] §r/mserial Count [数] で制限する数を設定してください");
+                    sender.sendMessage("§c§l[Man10SerialCode] §r/mserial Count [数] で個人の使用回数を制限する数を設定してください(0で無限)");
                     sender.sendMessage(text("§c§l[ここをクリックで自動入力する]").clickEvent(suggestCommand("/mserial Count ")));
                     return true;
                 }
