@@ -208,7 +208,7 @@ public class Event implements Listener {
                             else if (time == null) time = LocalDateTime.parse(res.getString("time"));
                         }
                         if (t.sub != 0 && account.contains(UUID.fromString(res.getString("uuid"))) && !useaccount.contains(UUID.fromString(res.getString("uuid")))) useaccount.add(UUID.fromString(res.getString("uuid")));
-                        if (t.publiccount != 0) Count++;
+                        if (t.publiccount != 0) pCount++;
                         else if (t.count != 0 && res.getString("uuid").equals(e.getWhoClicked().getUniqueId().toString())) Count++;
                     } catch (SQLException throwables) {
                         throwables.printStackTrace();
@@ -230,34 +230,42 @@ public class Event implements Listener {
             else between = ChronoUnit.DAYS.between(time,LocalDateTime.now());
             if (t.sub != 0 && !useaccount.contains(e.getWhoClicked().getUniqueId()) && useaccount.size() >= t.sub){
                 e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rこのコードで受け取れるアカウント数を超えています");
+                e.getWhoClicked().closeInventory();
                 return;
             }
             if (Count >= t.count && t.count != 0) {
                 e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rこのコードは受け取り上限に達しています");
+                e.getWhoClicked().closeInventory();
                 return;
             }
             if (pCount >= t.publiccount && t.publiccount != 0) {
                 e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rこのコードは受け取り上限に達しています");
+                e.getWhoClicked().closeInventory();
                 return;
             }
             if (t.span == 1 && between <= 1 && between != -1){      //スパン1日
                 e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rクールタイムです");
+                e.getWhoClicked().closeInventory();
                 return;
             }
             else if (t.span == 2 && between <= 7 && between != -1){      //スパン１週
                 e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rクールタイムです");
+                e.getWhoClicked().closeInventory();
                 return;
             }
             else if (t.span == 3 && between <= 30 && between != -1){      //スパン１月
                 e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rクールタイムです");
+                e.getWhoClicked().closeInventory();
                 return;
             }
             else if (t.span == 4 && between != -1){      //スパン１月
                 e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rクールタイムです");
+                e.getWhoClicked().closeInventory();
                 return;
             }
             if (e.getWhoClicked().getInventory().firstEmpty() == -1){
                 e.getWhoClicked().sendMessage("§c§l[Man10SerialCode] §rインベントリが満杯のため受け取れません");
+                e.getWhoClicked().closeInventory();
                 return;
             }
             if (!mysql.execute("insert into mserial_data (time, serial, code, name, uuid) values ('"+ LocalDateTime.now() +"', '"+ t.name +"', '"+ t.code +"', '"+ e.getWhoClicked().getName() +"', '"+ e.getWhoClicked().getUniqueId() +"');")){
