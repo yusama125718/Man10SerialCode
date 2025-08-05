@@ -209,7 +209,7 @@ public class Event implements Listener {
                         }
                         if (t.sub != 0 && account.contains(UUID.fromString(res.getString("uuid"))) && !useaccount.contains(UUID.fromString(res.getString("uuid")))) useaccount.add(UUID.fromString(res.getString("uuid")));
                         if (t.publiccount != 0) pCount++;
-                        else if (t.count != 0 && res.getString("uuid").equals(e.getWhoClicked().getUniqueId().toString())) Count++;
+                        if (t.count != 0 && res.getString("uuid").equals(e.getWhoClicked().getUniqueId().toString())) Count++;
                     } catch (SQLException throwables) {
                         throwables.printStackTrace();
                     }
